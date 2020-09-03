@@ -1,0 +1,17 @@
+# Generated files
+build
+dist
+
+# NodeJS dependencies
+node_modules/*
+
+# ES-Lint
+.eslintcache
+
+# Solidity-Coverage
+allFiredEvents
+scTopics
+scDebugLog
+coverage.json
+coverage/
+coverageEnv/
