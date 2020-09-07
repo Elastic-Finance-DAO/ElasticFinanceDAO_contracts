@@ -25,7 +25,7 @@ contract AmpleSenseGeyser is TokenGeyser {
     //
     // Last AMPL total supply
     //
-    uint256 lastAMPLTotalSupply;
+    uint256 public lastAMPLTotalSupply;
 
     /**
      * @param stakingToken The token users deposit as stake.
