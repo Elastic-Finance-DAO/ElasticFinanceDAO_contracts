@@ -33,7 +33,7 @@ async function setupContractAndAccounts () {
   await ampl.setMonetaryPolicy(owner);
 
   dist = await TokenGeyser.new(ampl.address, ampl.address, 10, START_BONUS, BONUS_PERIOD,
-    InitialSharesPerToken, ampl.address);
+    InitialSharesPerToken);
 }
 
 async function checkAvailableToUnlock (dist, v) {
@@ -57,21 +57,21 @@ describe('LockedPool', function () {
   describe('lockTokens', function () {
     describe('when not approved', function () {
       it('should fail', async function () {
-        const d = await TokenGeyser.new(ampl.address, ampl.address, 5, START_BONUS, BONUS_PERIOD, InitialSharesPerToken, ampl.address);
-        await expectRevert.unspecified(d.lockTokens($AMPL(10), ONE_YEAR, 0, 0));
+        const d = await TokenGeyser.new(ampl.address, ampl.address, 5, START_BONUS, BONUS_PERIOD, InitialSharesPerToken);
+        await expectRevert.unspecified(d.lockTokens($AMPL(10), ONE_YEAR));
       });
     });
 
     describe('when number of unlock schedules exceeds the maxUnlockSchedules', function () {
       it('should fail', async function () {
-        const d = await TokenGeyser.new(ampl.address, ampl.address, 5, START_BONUS, BONUS_PERIOD, InitialSharesPerToken, ampl.address);
+        const d = await TokenGeyser.new(ampl.address, ampl.address, 5, START_BONUS, BONUS_PERIOD, InitialSharesPerToken);
         await ampl.approve(d.address, $AMPL(100));
-        await d.lockTokens($AMPL(10), ONE_YEAR, 0, 0);
-        await d.lockTokens($AMPL(10), ONE_YEAR, 0, 0);
-        await d.lockTokens($AMPL(10), ONE_YEAR, 0, 0);
-        await d.lockTokens($AMPL(10), ONE_YEAR, 0, 0);
-        await d.lockTokens($AMPL(10), ONE_YEAR, 0, 0);
-        await expectRevert(d.lockTokens($AMPL(10), ONE_YEAR, 0, 0),
+        await d.lockTokens($AMPL(10), ONE_YEAR);
+        await d.lockTokens($AMPL(10), ONE_YEAR);
+        await d.lockTokens($AMPL(10), ONE_YEAR);
+        await d.lockTokens($AMPL(10), ONE_YEAR);
+        await d.lockTokens($AMPL(10), ONE_YEAR);
+        await expectRevert(d.lockTokens($AMPL(10), ONE_YEAR),
           'TokenGeyser: reached maximum unlock schedules');
       });
     });
@@ -82,11 +82,11 @@ describe('LockedPool', function () {
         await ampl.approve(dist.address, $AMPL(100));
       });
       it('should updated the locked pool balance', async function () {
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         checkAmplAprox(await dist.totalLocked.call(), 100);
       });
       it('should create a schedule', async function () {
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         const s = await dist.unlockSchedules.call(0);
         expect(s[0]).to.be.bignumber.equal($AMPL(100).mul(new BN(InitialSharesPerToken)));
         expect(s[1]).to.be.bignumber.equal($AMPL(0));
@@ -95,7 +95,7 @@ describe('LockedPool', function () {
         expect(await dist.unlockScheduleCount.call()).to.be.bignumber.equal('1');
       });
       it('should log TokensLocked', async function () {
-        const r = await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        const r = await dist.lockTokens($AMPL(100), ONE_YEAR);
         const l = r.logs.filter(l => l.event === 'TokensLocked')[0];
         checkAmplAprox(l.args.amount, 100);
         checkAmplAprox(l.args.total, 100);
@@ -103,9 +103,9 @@ describe('LockedPool', function () {
       });
       it('should be protected', async function () {
         await ampl.approve(dist.address, $AMPL(100));
-        await expectRevert(dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0, { from: anotherAccount }),
+        await expectRevert(dist.lockTokens($AMPL(50), ONE_YEAR, { from: anotherAccount }),
           'Ownable: caller is not the owner');
-        await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(50), ONE_YEAR);
       });
     });
 
@@ -113,18 +113,18 @@ describe('LockedPool', function () {
       const timeController = new TimeController();
       beforeEach(async function () {
         await ampl.approve(dist.address, $AMPL(150));
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         await timeController.initialize();
         checkAmplAprox(await dist.totalLocked.call(), 100);
       });
       it('should updated the locked and unlocked pool balance', async function () {
         await timeController.advanceTime(ONE_YEAR / 10);
-        await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(50), ONE_YEAR);
         checkAmplAprox(await dist.totalLocked.call(), 100 * 0.9 + 50);
       });
       it('should log TokensUnlocked and TokensLocked', async function () {
         await timeController.advanceTime(ONE_YEAR / 10);
-        const r = await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        const r = await dist.lockTokens($AMPL(50), ONE_YEAR);
 
         let l = r.logs.filter(l => l.event === 'TokensUnlocked')[0];
         checkAmplAprox(l.args.amount, 100 * 0.1);
@@ -137,7 +137,7 @@ describe('LockedPool', function () {
       });
       it('should create a schedule', async function () {
         await timeController.advanceTime(ONE_YEAR / 10);
-        await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(50), ONE_YEAR);
         const s = await dist.unlockSchedules.call(1);
         // struct UnlockSchedule {
         // 0   uint256 initialLockedShares;
@@ -158,25 +158,25 @@ describe('LockedPool', function () {
       const timeController = new TimeController();
       beforeEach(async function () {
         await ampl.approve(dist.address, $AMPL(150));
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         await timeController.initialize();
         checkAmplAprox(await dist.totalLocked.call(), 100);
         await invokeRebase(ampl, 100);
       });
       it('should updated the locked pool balance', async function () {
         await timeController.advanceTime(ONE_YEAR / 10);
-        await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(50), ONE_YEAR);
         checkAmplAprox(await dist.totalLocked.call(), 50 + 200 * 0.9);
       });
       it('should updated the locked pool balance', async function () {
         await timeController.advanceTime(ONE_YEAR / 10);
-        await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(50), ONE_YEAR);
 
         checkAmplAprox(await dist.totalLocked.call(), 50 + 200 * 0.9);
       });
       it('should log TokensUnlocked and TokensLocked', async function () {
         await timeController.advanceTime(ONE_YEAR / 10);
-        const r = await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        const r = await dist.lockTokens($AMPL(50), ONE_YEAR);
         let l = r.logs.filter(l => l.event === 'TokensUnlocked')[0];
         checkAmplAprox(l.args.amount, 200 * 0.1);
         checkAmplAprox(l.args.total, 200 * 0.9);
@@ -188,7 +188,7 @@ describe('LockedPool', function () {
       });
       it('should create a schedule', async function () {
         await timeController.advanceTime(ONE_YEAR / 10);
-        await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(50), ONE_YEAR);
         const s = await dist.unlockSchedules.call(1);
         checkSharesAprox(s[0], $AMPL(25).mul(new BN(InitialSharesPerToken)));
         checkSharesAprox(s[1], new BN(0));
@@ -202,19 +202,19 @@ describe('LockedPool', function () {
       let currentTime;
       beforeEach(async function () {
         await ampl.approve(dist.address, $AMPL(150));
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         currentTime = await time.latest();
         checkAmplAprox(await dist.totalLocked.call(), 100);
         await invokeRebase(ampl, -50);
       });
       it('should updated the locked pool balance', async function () {
-        await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(50), ONE_YEAR);
         checkAmplAprox(await dist.totalLocked.call(), 100);
       });
       it('should log TokensUnlocked and TokensLocked', async function () {
         currentTime = currentTime.add(new BN(ONE_YEAR / 10));
         await setTimeForNextTransaction(currentTime);
-        const r = await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        const r = await dist.lockTokens($AMPL(50), ONE_YEAR);
         let l = r.logs.filter(l => l.event === 'TokensUnlocked')[0];
         checkAmplAprox(l.args.amount, 50 * 0.1);
         checkAmplAprox(l.args.total, 50 * 0.9);
@@ -225,7 +225,7 @@ describe('LockedPool', function () {
         expect(l.args.durationSec).to.be.bignumber.equal(`${ONE_YEAR}`);
       });
       it('should create a schedule', async function () {
-        await dist.lockTokens($AMPL(50), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(50), ONE_YEAR);
         const s = await dist.unlockSchedules.call(1);
 
         checkSharesAprox(s[0], $AMPL(100).mul(new BN(InitialSharesPerToken)));
@@ -243,7 +243,7 @@ describe('LockedPool', function () {
         const timeController = new TimeController();
         beforeEach(async function () {
           await ampl.approve(dist.address, $AMPL(100));
-          await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+          await dist.lockTokens($AMPL(100), ONE_YEAR);
           await timeController.initialize();
           await timeController.advanceTime(ONE_YEAR / 2);
         });
@@ -315,7 +315,7 @@ describe('LockedPool', function () {
       describe('after waiting > the duration', function () {
         beforeEach(async function () {
           await ampl.approve(dist.address, $AMPL(100));
-          await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+          await dist.lockTokens($AMPL(100), ONE_YEAR);
           await time.increase(2 * ONE_YEAR);
         });
         it('should unlock all the tokens', async function () {
@@ -343,7 +343,7 @@ describe('LockedPool', function () {
       describe('dust tokens due to division underflow', function () {
         beforeEach(async function () {
           await ampl.approve(dist.address, $AMPL(100));
-          await dist.lockTokens($AMPL(1), 10 * ONE_YEAR, 0, 0);
+          await dist.lockTokens($AMPL(1), 10 * ONE_YEAR);
         });
         it('should unlock all tokens', async function () {
           // 1 AMPL locked for 10 years. Almost all time passes upto the last minute.
@@ -366,10 +366,10 @@ describe('LockedPool', function () {
       const timeController = new TimeController();
       beforeEach(async function () {
         await ampl.approve(dist.address, $AMPL(200));
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         await timeController.initialize();
         await timeController.advanceTime(ONE_YEAR / 2);
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         await timeController.advanceTime(ONE_YEAR / 10);
       });
       it('should return the remaining unlock value', async function () {
@@ -425,9 +425,9 @@ describe('LockedPool', function () {
       _t = await time.latest();
       await ampl.approve(dist.address, $AMPL(300));
       await dist.stake($AMPL(100), []);
-      await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+      await dist.lockTokens($AMPL(100), ONE_YEAR);
       await time.increase(ONE_YEAR / 2);
-      await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+      await dist.lockTokens($AMPL(100), ONE_YEAR);
       await time.increase(ONE_YEAR / 10);
     });
 

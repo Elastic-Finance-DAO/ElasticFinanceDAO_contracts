@@ -1,4 +1,4 @@
-const TokenGeyser = artifacts.require('./TokenGeyser.sol');
+const TokenGeyser = artifacts.require('./AmpleSenseGeyser.sol');
 const uFragments = artifacts.require('./uFragments.sol');
 const KMPL = artifacts.require('./KiloAmple.sol');
 
@@ -11,14 +11,14 @@ module.exports = function(deployer, network, accounts) {
     let kmpl = await KMPL.deployed();
     //deploying kGeyser2 WETH-kPML
     //reaches max bonus in 90 days
-    await deployer.deploy(TokenGeyser,ampl.address,kmpl.address,2,33,90*24*60*60,1000000,ampl.address, {from : mainAccount});
+    await deployer.deploy(TokenGeyser,ampl.address,kmpl.address,2,33,90*24*60*60,1000000,ampl.address, 10, 5, {from : mainAccount});
     let kGeyser2 = await TokenGeyser.deployed();
     //setup kGeyser2
     //approve kGeyser2 to extract 12774 tokens
     await kmpl.approve(kGeyser2.address, 12774*1000000000, {from : mainAccount});
     //Bucket A
-    await kGeyser2.lockTokens(9581*1000000000, 90*24*60*60, 0, 0, {from : mainAccount});
+    await kGeyser2.lockTokens(9581*1000000000, 90*24*60*60, {from : mainAccount});
     //Bucket B with 1% and 0.5% as rebase bonuses
-    return await kGeyser2.lockTokens(3193*1000000000, 90*24*60*60, 10, 5, {from : mainAccount});
+    return await kGeyser2.addRewardRebase(3193*1000000000, {from : mainAccount});
   })
 };

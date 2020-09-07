@@ -31,7 +31,7 @@ async function setupContractAndAccounts () {
   const startBonus = 50;
   const bonusPeriod = 86400;
   dist = await TokenGeyser.new(ampl.address, ampl.address, 10, startBonus, bonusPeriod,
-    InitialSharesPerToken, ampl.address);
+    InitialSharesPerToken);
 
   await ampl.transfer(anotherAccount, $AMPL(50000));
   await ampl.approve(dist.address, $AMPL(50000), { from: anotherAccount });
@@ -108,7 +108,7 @@ describe('unstaking', function () {
       // user's final balance is 90 ampl, (20 remains staked), eligible rewards (40 ampl)
       const timeController = new TimeController();
       beforeEach(async function () {
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         await timeController.initialize();
         await dist.stake($AMPL(50), [], { from: anotherAccount });
         await timeController.advanceTime(ONE_YEAR);
@@ -154,7 +154,7 @@ describe('unstaking', function () {
       const timeController = new TimeController();
       const ONE_HOUR = 3600;
       beforeEach(async function () {
-        await dist.lockTokens($AMPL(1000), ONE_HOUR,0 ,0);
+        await dist.lockTokens($AMPL(1000), ONE_HOUR);
         timeController.initialize();
         await dist.stake($AMPL(500), [], { from: anotherAccount });
         await timeController.advanceTime(12 * ONE_HOUR);
@@ -197,7 +197,7 @@ describe('unstaking', function () {
       // user's final balance is 40 ampl
       const timeController = new TimeController();
       beforeEach(async function () {
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         await timeController.initialize();
         await timeController.advanceTime(ONE_YEAR / 100);
         await dist.stake($AMPL(50), [], { from: anotherAccount });
@@ -231,7 +231,7 @@ describe('unstaking', function () {
       // 3rd unstake should be worth twice the first one
       const timeController = new TimeController();
       beforeEach(async function () {
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         await timeController.initialize();
         await dist.stake($AMPL(10), [], { from: anotherAccount });
         await timeController.advanceTime(ONE_YEAR);
@@ -270,7 +270,7 @@ describe('unstaking', function () {
       // user's final balance is 57 ampl
       const timeController = new TimeController();
       beforeEach(async function () {
-        await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+        await dist.lockTokens($AMPL(100), ONE_YEAR);
         await timeController.initialize();
         await timeController.advanceTime(ONE_YEAR / 100);
         await dist.stake($AMPL(50), [], { from: anotherAccount });
@@ -318,7 +318,7 @@ describe('unstaking', function () {
       const rewardsOwner = 32500.0 / 11.0;
       beforeEach(async function () {
         await timeController.executeAsBlock(function () {
-          dist.lockTokens($AMPL(10000), ONE_YEAR, 0, 0);
+          dist.lockTokens($AMPL(10000), ONE_YEAR);
           dist.stake($AMPL(5000), [], { from: anotherAccount });
         });
         await timeController.initialize();
@@ -367,7 +367,7 @@ describe('unstaking', function () {
     // unstakes 30 ampls, gets 60% of the reward (60 ampl)
     const timeController = new TimeController();
     beforeEach(async function () {
-      await dist.lockTokens($AMPL(100), ONE_YEAR, 0, 0);
+      await dist.lockTokens($AMPL(100), ONE_YEAR);
       await dist.stake($AMPL(50), [], { from: anotherAccount });
       await timeController.initialize();
       await timeController.advanceTime(ONE_YEAR);

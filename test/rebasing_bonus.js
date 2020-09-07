@@ -12,7 +12,7 @@ const {
 } = _require('/test/helper');
 
 const AmpleforthErc20 = contract.fromArtifact('UFragments');
-const TokenGeyser = contract.fromArtifact('TokenGeyser');
+const TokenGeyser = contract.fromArtifact('AmpleSenseGeyser');
 const InitialSharesPerToken = 10 ** 6;
 
 let ampl, dist, owner, anotherAccount;
@@ -30,7 +30,7 @@ describe('rebasing bonus', function () {
     const startBonus = 50;
     const bonusPeriod = 86400;
     dist = await TokenGeyser.new(ampl.address, ampl.address, 10, startBonus, bonusPeriod,
-      InitialSharesPerToken, ampl.address);
+      InitialSharesPerToken, ampl.address, 5, 10);
     expect(await dist.totalStaked.call()).to.be.bignumber.equal($AMPL(0));
     await ampl.transfer(anotherAccount, $AMPL(50));
     await ampl.approve(dist.address, $AMPL(50), {
@@ -44,16 +44,15 @@ describe('rebasing bonus', function () {
 
   it('no reward if no buckets with rebase rewards', async function() {
     await ampl.approve(dist.address, $AMPL(150));
-    await dist.lockTokens($AMPL(150),200,0,0);
     await invokeRebase(ampl, 100);
     let res = await dist.rewardRebase();
-    let l = res.logs.filter(l => l.event === 'TokensUnlocked');
+    let l = res.logs.filter(l => l.event === 'RebaseReward');
     expect(l.length === 0);
   })
 
   it('no price change rebase', async function() {
     await ampl.approve(dist.address, $AMPL(100));
-    await dist.lockTokens($AMPL(100),200,10,5);
+    await dist.addRewardRebase($AMPL(100));
     await invokeRebase(ampl, 0);
     await expectRevert(
       dist.rewardRebase(),
@@ -63,7 +62,7 @@ describe('rebasing bonus', function () {
 
   it('no rebase', async function() {
     await ampl.approve(dist.address, $AMPL(100));
-    await dist.lockTokens($AMPL(100),200,10,5);
+    await dist.addRewardRebase($AMPL(100));
     await expectRevert(
       dist.rewardRebase(),
       'Total supply of AMPL not changed'
@@ -72,23 +71,21 @@ describe('rebasing bonus', function () {
 
   it('positive rebase', async function() {
     await ampl.approve(dist.address, $AMPL(100));
-    await dist.lockTokens($AMPL(100),200,10,5);
+    await dist.addRewardRebase($AMPL(100));
     await invokeRebase(ampl, 10);
     let res = await dist.rewardRebase();
-    expectEvent(res, 'ScheduleRebaseReward', {
-      id: "0",
-      bonusShares: "1000000000000000"
+    expectEvent(res, 'RebaseReward', {
+      amount: "1000000000000000"
     });
   })
 
   it('negative rebase', async function() {
     await ampl.approve(dist.address, $AMPL(100));
-    await dist.lockTokens($AMPL(100),200,10,5);
+    await dist.addRewardRebase($AMPL(100));
     await invokeRebase(ampl, -10);
     let res = await dist.rewardRebase();
-    expectEvent(res, 'ScheduleRebaseReward', {
-      id: "0",
-      bonusShares: "500000000000000"
+    expectEvent(res, 'RebaseReward', {
+      amount: "500000000000000"
     });
   })
 
