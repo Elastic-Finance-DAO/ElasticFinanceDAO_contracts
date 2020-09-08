@@ -11,6 +11,7 @@ module.exports = function(deployer, network, accounts) {
     await deployer.deploy(KMPL, {from : mainAccount});
     let ampl = await uFragments.deployed();
     await ampl.initialize(mainAccount, {from : mainAccount});
+    await ampl.setMonetaryPolicy(mainAccount, {from : mainAccount});
     let kmpl = await KMPL.deployed();
     //deploying kGeyser1 AMPL-kMPL
     //reaches max bonus in 14 days

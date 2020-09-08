@@ -42,7 +42,8 @@
     "truffle": "4.1.14",
     "truffle-flattener": "^1.4.4",
     "truffle-hdwallet-provider": "^1.0.17",
-    "uFragments": "https://github.com/ampleforth/uFragments.git#v1.0.0"
+    "uFragments": "https://github.com/ampleforth/uFragments.git#v1.0.0",
+    "web3-provider-engine": "^15.0.12"
   },
   "devDependencies": {
     "@openzeppelin/test-environment": "^0.1.2",

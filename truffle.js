@@ -1,5 +1,6 @@
 const connectionConfig = require('frg-ethereum-runners/config/network_config.json');
 const HDWalletProvider = require("truffle-hdwallet-provider");
+var NonceTrackerSubprovider = require("web3-provider-engine/subproviders/nonce-tracker");
 
 const mainnetUrl = 'https://mainnet.infura.io/v3/00233ca8f2c74d0c97ae3af7b9f80953';
 
@@ -33,7 +34,13 @@ module.exports = {
       gasPrice: 30000000000
     },
     kovan: {
-      provider: () => new HDWalletProvider("", "https://kovan.infura.io/v3/00233ca8f2c74d0c97ae3af7b9f80953"),
+      provider: () => { 
+        let wallet = new HDWalletProvider("", "https://kovan.infura.io/v3/00233ca8f2c74d0c97ae3af7b9f80953")
+        var nonceTracker = new NonceTrackerSubprovider()
+        wallet.engine._providers.unshift(nonceTracker)
+        nonceTracker.setEngine(wallet.engine)
+        return wallet
+      },
       network_id: 42,
       gas: 6000000,
       gasPrice : 2000000000,
