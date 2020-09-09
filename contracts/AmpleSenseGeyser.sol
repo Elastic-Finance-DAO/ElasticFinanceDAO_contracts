@@ -87,4 +87,8 @@ contract AmpleSenseGeyser is TokenGeyser {
         lastAMPLTotalSupply = newTotalSupply;
         emit RebaseReward(toTransfer, _rewardPool.balance());
     }
+
+    function rewardLeft() view public returns (uint256) {
+        return _rewardPool.balance();
+    }
 }
